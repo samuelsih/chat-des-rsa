@@ -1,48 +1,51 @@
 package rsa
 
 import (
+	"fmt"
 	"math/big"
+	"strings"
 )
 
-var zero = big.NewInt(0)
-var one = big.NewInt(1)
+func Encrypt(ciphertext string, publicKey *big.Int, n *big.Int) string {
+	var sb strings.Builder
 
-func Generate(p *big.Int, q *big.Int) (*big.Int, *big.Int, *big.Int) {
-	n := new(big.Int).Mul(p, q)
-	phi := new(big.Int).Mul(
-		new(big.Int).Sub(p, one),
-		new(big.Int).Sub(q, one),
-	)
+	for _, text := range ciphertext {
+		num := big.NewInt(int64(text))
+		encrypted := new(big.Int).Exp(num, publicKey, n)
 
-	e := big.NewInt(2)
+		toWrite := fmt.Sprintf("%06d", encrypted)
+		sb.WriteString(toWrite)
+	}
 
-	for leftSideIsLessThanRightSide(e, phi) {
-		if equal(gcd(e, phi), one) {
-			break
+	return sb.String()
+}
+
+func Decrypt(ciphertext string, privateKey *big.Int, n *big.Int) string {
+	var sb strings.Builder
+
+	chunks := split(ciphertext, 6)
+	for _, chunk := range chunks {
+		encryptedNumber, _ := new(big.Int).SetString(chunk, 10)
+		decrypted := new(big.Int).Exp(encryptedNumber, privateKey, n)
+		ascii := rune(decrypted.Int64())
+		sb.WriteString(string(ascii))
+	}
+
+	return sb.String()
+}
+
+func split(s string, size int) []string {
+	var chunks []string
+
+	for i := 0; i < len(s); i += size {
+		end := i + size
+
+		if end > len(s) {
+			end = len(s)
 		}
 
-		e.Add(e, one) //e++
+		chunks = append(chunks, s[i:end])
 	}
 
-	// d x e === 1 (mod ϕ(n))
-	// bentuknya sama kaya bentuk modular invers --> ax === 1 (mod m) atau x === a^-1 (mod m)
-	d := new(big.Int).ModInverse(e, phi)
-
-	return e, d, n
-}
-
-func gcd(a, b *big.Int) *big.Int {
-	for !equal(b, zero) {
-		a, b = b, new(big.Int).Mod(a, b)
-	}
-
-	return a
-}
-
-func equal(a, b *big.Int) bool {
-	return a.Cmp(b) == 0
-}
-
-func leftSideIsLessThanRightSide(a, b *big.Int) bool {
-	return a.Cmp(b) == -1
+	return chunks
 }

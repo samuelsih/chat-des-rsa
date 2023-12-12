@@ -5,25 +5,18 @@ import (
 	"testing"
 )
 
-func TestRSA(t *testing.T) {
+func TestRSAFlow(t *testing.T) {
 	p := big.NewInt(53)
 	q := big.NewInt(59)
 
 	public, private, n := Generate(p, q)
 
-	expectedPublic := big.NewInt(3)
-	expectedPrivate := big.NewInt(2011)
-	expectedN := big.NewInt(3127)
+	msg := "Saya hantu"
 
-	if public.Cmp(expectedPublic) != 0 {
-		t.Fatalf("Expected %s, got %s", expectedPublic.String(), public.String())
-	}
+	encrypted := Encrypt(msg, public, n)
+	decrypted := Decrypt(encrypted, private, n)
 
-	if private.Cmp(expectedPrivate) != 0 {
-		t.Fatalf("Expected %s, got %s", expectedPrivate.String(), private.String())
-	}
-
-	if n.Cmp(expectedN) != 0 {
-		t.Fatalf("Expected %s, got %s", expectedN.String(), n.String())
+	if msg != decrypted {
+		t.Fatalf("RSAFlow: Expected %s, Got %s", msg, decrypted)
 	}
 }
