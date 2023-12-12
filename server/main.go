@@ -7,6 +7,8 @@ import (
 	"net"
 	"slices"
 	"strings"
+
+	"github.com/samuelsih/chat-des-rsa/des"
 )
 
 var clients []net.Conn
@@ -31,6 +33,7 @@ func main() {
 
 		fmt.Println("Connection established", conn.RemoteAddr().String())
 		clients = append(clients, conn)
+		go detectDisconnect(conn)
 		go handleClient(conn)
 	}
 }
@@ -52,7 +55,7 @@ func handleClient(conn net.Conn) {
 			return
 		}
 
-		fmt.Println("Message:", sanitize(msg))
+		fmt.Println("Message:", sanitize(msg), des.Decrypt(sanitize(msg), des.DecryptionBase64))
 
 		differentClientIndex := slices.IndexFunc(clients, func(c net.Conn) bool {
 			return c.RemoteAddr().String() != conn.RemoteAddr().String()
@@ -62,7 +65,7 @@ func handleClient(conn net.Conn) {
 			singleSend(conn, "No client in server\n")
 			continue
 		}
-		
+
 		connToSend := clients[differentClientIndex]
 		singleSend(connToSend, msg)
 	}

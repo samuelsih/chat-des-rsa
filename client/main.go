@@ -3,18 +3,36 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math/big"
 	"net"
 	"os"
 	"strings"
 	"sync"
 
 	"github.com/samuelsih/chat-des-rsa/des"
+	"github.com/samuelsih/chat-des-rsa/rsa"
 )
 
-var wg sync.WaitGroup
+type Application struct {
+	PublicKey      *big.Int
+	PrivateKey     *big.Int
+	N              *big.Int
+	OtherPublicKey *big.Int
+	wg             sync.WaitGroup
+	conn           net.Conn
+}
 
-func main() {
-	wg.Add(1)
+func New(p, q *big.Int) Application {
+	publicKey, privateKey, n := rsa.Generate(p, q)
+	return Application{
+		PublicKey:  publicKey,
+		PrivateKey: privateKey,
+		N:          n,
+	}
+}
+
+func (a *Application) Start() {
+	a.wg.Add(1)
 
 	conn, err := net.Dial("tcp", "localhost:8080")
 	if err != nil {
@@ -22,15 +40,16 @@ func main() {
 		return
 	}
 
-	defer conn.Close()
+	a.conn = conn
+	defer a.conn.Close()
 
-	go prompt(conn)
-	go recv(conn)
+	go a.Prompt()
+	go a.Recv()
 
-	wg.Wait()
+	a.wg.Wait()
 }
 
-func prompt(conn net.Conn) {
+func (a *Application) Prompt() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
@@ -44,7 +63,7 @@ func prompt(conn net.Conn) {
 		msg := fmt.Sprintf("%s", scanner.Text())
 		encryptedTxt := des.Encrypt(msg, des.EncryptionBase64)
 
-		_, err := conn.Write([]byte(encryptedTxt + "\n"))
+		_, err := a.conn.Write([]byte(encryptedTxt + "\n"))
 		if err != nil {
 			fmt.Println("Error conn.Write:", err)
 			return
@@ -52,9 +71,9 @@ func prompt(conn net.Conn) {
 	}
 }
 
-func recv(listener net.Conn) {
-	defer wg.Done()
-	reader := bufio.NewReader(listener)
+func (a *Application) Recv() {
+	defer a.wg.Done()
+	reader := bufio.NewReader(a.conn)
 
 	for {
 		response, err := reader.ReadString('\n')
@@ -63,20 +82,33 @@ func recv(listener net.Conn) {
 			return
 		}
 
-		if(strings.Contains(response, "No client in server")) {
+		if strings.Contains(response, "No client in server") {
 			fmt.Println("No second client.")
 			continue
 		}
 
-		decryptedTxt := des.Decrypt(response, des.DecryptionBase64)
+		if strings.Contains(response, "PING") {
+			continue
+		}
 
-		fmt.Println(sanitize(decryptedTxt))
+		if strings.Contains(response, "START") {
+			sendOurRSA(a.conn, a.PublicKey.String(), a.N.String())
+			continue
+		}
+
+		decryptedTxt := des.Decrypt(response, des.DecryptionBase64)
+		fmt.Println(a.sanitize(decryptedTxt))
 	}
 }
 
-
-func sanitize(s string) string {
+func (a *Application) sanitize(s string) string {
 	trimSpaced := strings.TrimSpace(s)
 	trimRight := strings.TrimRight(trimSpaced, "\r\n")
 	return strings.TrimRight(trimRight, "\n")
+}
+
+func main() {
+	p, q := generateInitialPandQ()
+	app := New(p, q)
+	app.Start()
 }
