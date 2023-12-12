@@ -1,0 +1,13 @@
+version: '3'
+
+dotenv:
+  - .env
+
+tasks:
+  server:
+    cmd: |
+      go run server/main.go server/tools.go
+
+  client:
+    cmd: |
+      DES_KEY=$DES_KEY go run client/main.go
