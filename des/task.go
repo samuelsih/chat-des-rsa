@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/samuelsih/chat-encrypt/des/table"
+	"github.com/samuelsih/chat-des-rsa/des/table"
 )
 
 type Encryption int

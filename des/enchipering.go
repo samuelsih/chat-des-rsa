@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/samuelsih/chat-encrypt/des/table"
+	"github.com/samuelsih/chat-des-rsa/des/table"
 )
 
 // 4 bit * 8 iteration = 32 bit

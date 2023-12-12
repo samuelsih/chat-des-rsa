@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/samuelsih/chat-encrypt/des"
+	"github.com/samuelsih/chat-des-rsa/des"
 )
 
 var wg sync.WaitGroup

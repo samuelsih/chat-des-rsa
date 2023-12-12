@@ -3,7 +3,7 @@ package des
 import (
 	"strings"
 
-	"github.com/samuelsih/chat-encrypt/des/table"
+	"github.com/samuelsih/chat-des-rsa/des/table"
 )
 
 var leftShiftIndex = []int{1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1}
