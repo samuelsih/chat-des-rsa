@@ -11,3 +11,8 @@ tasks:
   client:
     cmd: |
       DES_KEY=$DES_KEY go run client/main.go
+
+  rsa:
+    cmds: 
+      - clear
+      - go test ./... -v
