@@ -49,7 +49,7 @@ func sendOurRSA(conn net.Conn, publicKey string, n string) {
 	}
 }
 
-func decodeRSA(payload string) RSAExchange {
+func decodeRSAPayload(payload string) RSAExchange {
 	var result RSAExchange
 	json.Unmarshal([]byte(payload), &result)
 	return result

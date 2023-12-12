@@ -16,3 +16,9 @@ tasks:
     cmds: 
       - clear
       - go test ./... -v
+
+  fmt:
+    cmds:
+      - gofmt -s -w server/main.go server/tools.go
+      - gofmt -s -w client/main.go client/tools.go
+      - gofmt -s -w rsa/generate.go rsa/rsa.go

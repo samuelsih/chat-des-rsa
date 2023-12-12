@@ -55,14 +55,14 @@ func signalForSendPubKey() {
 
 	for {
 		select {
-			case <-ticker.C:
-				clientFullSignal(full)
-			case <-full:
-				for _, client := range clients {
-					singleSend(client, "START" + "\n")
-				}
+		case <-ticker.C:
+			clientFullSignal(full)
+		case <-full:
+			for _, client := range clients {
+				singleSend(client, "START"+"\n")
+			}
 
-				return
+			return
 		}
 	}
 }
@@ -78,7 +78,7 @@ func ping(conn net.Conn, disconnect chan<- struct{}) {
 }
 
 func clientFullSignal(full chan<- struct{}) {
-	go func ()  {
+	go func() {
 		if len(clients) == 2 {
 			full <- struct{}{}
 		}

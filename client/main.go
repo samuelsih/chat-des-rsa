@@ -96,7 +96,7 @@ func (a *Application) Recv() {
 
 		case strings.Contains(response, "PUBKEY"):
 			cmd := strings.Split(response, " ")
-			other := decodeRSA(cmd[1])
+			other := decodeRSAPayload(cmd[1])
 
 			a.OtherPublicKey, _ = new(big.Int).SetString(other.PublicKey, 10)
 			a.OtherN, _ = new(big.Int).SetString(other.N, 10)
