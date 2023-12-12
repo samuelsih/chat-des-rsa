@@ -7,8 +7,6 @@ import (
 	"net"
 	"slices"
 	"strings"
-
-	"github.com/samuelsih/chat-des-rsa/des"
 )
 
 var clients []net.Conn
@@ -23,6 +21,8 @@ func main() {
 	defer listener.Close()
 
 	fmt.Println("Server is listening on port 8080")
+
+	go signalForSendPubKey()
 
 	for {
 		conn, err := listener.Accept()
@@ -55,7 +55,7 @@ func handleClient(conn net.Conn) {
 			return
 		}
 
-		fmt.Println("Message:", sanitize(msg), des.Decrypt(sanitize(msg), des.DecryptionBase64))
+		fmt.Println("Message:", sanitize(msg))
 
 		differentClientIndex := slices.IndexFunc(clients, func(c net.Conn) bool {
 			return c.RemoteAddr().String() != conn.RemoteAddr().String()

@@ -7,8 +7,6 @@ import (
 	"math/big"
 	"net"
 	"os"
-
-	"github.com/samuelsih/chat-des-rsa/des"
 )
 
 type RSAExchange struct {
@@ -44,11 +42,15 @@ func sendOurRSA(conn net.Conn, publicKey string, n string) {
 		os.Exit(1)
 	}
 
-	encryptedTxt := des.Encrypt(string(msg), des.EncryptionBase64)
-
-	_, err = conn.Write([]byte(encryptedTxt + "\n"))
+	_, err = conn.Write([]byte("PUBKEY " + string(msg) + "\n"))
 	if err != nil {
 		fmt.Println("Error conn.Write:", err)
 		os.Exit(1)
 	}
+}
+
+func decodeRSA(payload string) RSAExchange {
+	var result RSAExchange
+	json.Unmarshal([]byte(payload), &result)
+	return result
 }

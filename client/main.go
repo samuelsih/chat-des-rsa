@@ -18,6 +18,7 @@ type Application struct {
 	PrivateKey     *big.Int
 	N              *big.Int
 	OtherPublicKey *big.Int
+	OtherN         *big.Int
 	wg             sync.WaitGroup
 	conn           net.Conn
 }
@@ -61,7 +62,8 @@ func (a *Application) Prompt() {
 		}
 
 		msg := fmt.Sprintf("%s", scanner.Text())
-		encryptedTxt := des.Encrypt(msg, des.EncryptionBase64)
+		encryptedWithPubKey := rsa.Encrypt(msg, a.OtherPublicKey, a.OtherN)
+		encryptedTxt := des.Encrypt(encryptedWithPubKey, des.EncryptionBase64)
 
 		_, err := a.conn.Write([]byte(encryptedTxt + "\n"))
 		if err != nil {
@@ -82,22 +84,29 @@ func (a *Application) Recv() {
 			return
 		}
 
-		if strings.Contains(response, "No client in server") {
+		switch {
+		case strings.Contains(response, "No client in server"):
 			fmt.Println("No second client.")
-			continue
-		}
 
-		if strings.Contains(response, "PING") {
+		case strings.Contains(response, "PING"):
 			continue
-		}
 
-		if strings.Contains(response, "START") {
+		case strings.Contains(response, "START"):
 			sendOurRSA(a.conn, a.PublicKey.String(), a.N.String())
-			continue
-		}
 
-		decryptedTxt := des.Decrypt(response, des.DecryptionBase64)
-		fmt.Println(a.sanitize(decryptedTxt))
+		case strings.Contains(response, "PUBKEY"):
+			cmd := strings.Split(response, " ")
+			other := decodeRSA(cmd[1])
+
+			a.OtherPublicKey, _ = new(big.Int).SetString(other.PublicKey, 10)
+			a.OtherN, _ = new(big.Int).SetString(other.N, 10)
+
+		default:
+			decryptedTxt := des.Decrypt(response, des.DecryptionBase64)
+			sanitizedDecryptedTxt := a.sanitize(decryptedTxt)
+			result := rsa.Decrypt(sanitizedDecryptedTxt, a.PrivateKey, a.N)
+			fmt.Println("MESSAGE:", result)
+		}
 	}
 }
 
