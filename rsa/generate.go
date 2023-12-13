@@ -26,8 +26,10 @@ func Generate(p *big.Int, q *big.Int) (*big.Int, *big.Int, *big.Int) {
 		e.Add(e, one) //e++
 	}
 
-	// d x e === 1 (mod ϕ(n))
-	// bentuknya sama kaya bentuk modular invers --> ax === 1 (mod m) atau x === a^-1 (mod m)
+	// ed ≡ 1 (mod ϕ(n))
+	// ex + ϕ(n)y = 1
+	// ax ≡ 1 (mod m) --> x ≡ a^-1 (mod m)
+	// x ≡ a^-1 (mod m) --> x ≡ e^-1 (mod ϕ(n))
 	d := new(big.Int).ModInverse(e, phi)
 
 	return e, d, n
