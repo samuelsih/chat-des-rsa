@@ -15,13 +15,13 @@ type RSAExchange struct {
 }
 
 func generateInitialPandQ() (*big.Int, *big.Int) {
-	num1, err := rand.Prime(rand.Reader, 8)
+	num1, err := rand.Prime(rand.Reader, 16)
 	if err != nil {
 		fmt.Println("Error generating num1:", err)
 		os.Exit(1)
 	}
 
-	num2, err := rand.Prime(rand.Reader, 8)
+	num2, err := rand.Prime(rand.Reader, 16)
 	if err != nil {
 		fmt.Println("Error generating num2:", err)
 		os.Exit(1)
